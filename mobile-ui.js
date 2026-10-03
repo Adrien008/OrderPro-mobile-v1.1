@@ -18,7 +18,7 @@
     var more=document.createElement("button");more.type="button";more.dataset.nav="more";more.innerHTML='<span class="mi">⋯</span>Plus';more.addEventListener("click",function(){var x=$("guide");if(x)x.click()});nav.appendChild(more);
     document.body.appendChild(nav);document.body.appendChild(add);
     add.addEventListener("click",function(){var x=$("add");if(x&&!x.hidden)x.click()});
-    function update(){add.hidden=!!($("add")&&$("add").hidden)||!!document.querySelector(".modal.on");}
+    function update(){var want=!!($("add")&&$("add").hidden)||!!document.querySelector(".modal.on");if(add.hidden!==want)add.hidden=want;}
     var mo=new MutationObserver(update);mo.observe(document.body,{subtree:true,attributes:true,attributeFilter:["class","hidden"]});
     update();
     var first=nav.querySelector('[data-nav="home"]');if(first)first.classList.add("active");

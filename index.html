@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OrderPro</title>
+<meta name="description" content="OrderPro : suivi des commandes, acomptes, livraisons et bilans.">
+<meta name="theme-color" content="#013c2c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="OrderPro">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile-ui.css">
+</head>
+
+<body>
+<main>
+<div style="display:flex;align-items:center;gap:10px;margin:8px 0 12px"><img id="logo" src="icon-192.png" width="44" height="44" alt="OrderPro" style="border-radius:11px"><h1 id="brand" style="margin:0">OrderPro</h1><button type="button" class="alt" id="priv" style="margin-left:auto;padding:8px 12px;font-size:.8rem"></button></div>
+<div class="warn" id="warn"></div>
+<section id="home"><h2>Aujourd'hui</h2><div class="stats" id="hm-g"></div></section>
+
+<div class="btns" id="modebar" style="margin:0 0 12px"><button type="button" id="m-imp">Importation (Chine)</button><button type="button" id="m-stk" class="alt">Stock local</button></div>
+<div class="btns" style="margin:0 0 12px"><button id="t-real" type="button">Client ID</button><button id="t-demo" class="alt" type="button">Vague d'exemple</button></div>
+<section>
+<h2 id="dtitle">Tableau de bord</h2>
+<div class="stats">
+<div><span>Commandes</span><b id="s-n">0</b></div>
+<div><span>Total vendu</span><b id="s-t">0</b></div>
+<div><span>Encaissé</span><b id="s-e">0</b></div>
+<div><span>Reste dû</span><b id="s-r">0</b></div>
+<div id="s-bw" hidden style="grid-column:1 / 3"><span>Bénéfice estimé (commandes avec coût d'achat)</span><b id="s-b">0</b></div>
+</div>
+</section>
+
+<section>
+<div class="g2">
+<div><label for="fv">Vague</label><select id="fv"></select></div>
+<div><label for="fs">Statut</label><select id="fs"></select></div>
+</div>
+<div class="g2" style="margin-top:8px"><div><label for="fz">Quartier / zone</label><select id="fz"></select></div><div></div></div>
+<div class="btns" id="chips" style="margin-top:10px"><button type="button" data-q="">Tout</button><button type="button" class="alt" data-q="imp">Impayés</button><button type="button" class="alt" data-q="liv">À livrer</button><button type="button" class="alt" data-q="pay">Déjà payés</button></div>
+<label for="fq">Rechercher</label>
+<input id="fq" type="search" placeholder="Nom, numéro, ville ou quartier">
+<div class="btns"><button id="add" type="button">+ Nouvelle commande</button><button class="alt" id="liv-btn" type="button">Livraisons</button><button class="alt" id="cl-btn" type="button">Fiches clients</button><button class="alt" id="dv-btn" type="button">Devis</button><button class="alt" id="sk-btn" type="button">Stock</button><button class="alt" id="calc-btn" type="button">Calculatrice</button><button class="alt" id="dettes" type="button">Qui me doit de l'argent ?</button></div>
+</section>
+
+<div class="warn" id="waitbar" hidden><span id="w-txt"></span><div class="btns"><button class="alt" id="w-see" type="button">Voir les clients</button></div></div>
+<div class="warn" id="demobar" hidden>Ceci est une <b>vague d'exemple</b> pour découvrir l'outil. Les numéros sont fictifs et ces commandes ne comptent pas dans tes vraies données.<div class="btns"><button class="del" id="d-del" type="button">Supprimer les exemples</button></div></div>
+<p class="meta" style="margin:0 0 8px">Astuce : glisse une commande vers la droite pour la marquer « Livré », vers la gauche pour « Relancé ».</p>
+<div id="list"></div>
+
+<section>
+<h2>Données</h2>
+<div class="btns">
+<button class="alt" id="xls" type="button">Exporter en Excel</button><button class="alt" id="csv" type="button">Exporter en CSV</button>
+<button class="alt" id="save" type="button">Sauvegarder</button>
+<button class="alt" id="load" type="button">Restaurer</button>
+</div>
+<div class="btns"><button class="alt" id="d-load" type="button">Voir la vague d'exemple</button><button class="alt" id="inst" type="button" hidden>Installer l'application</button><button class="alt" id="bilan-btn" type="button">Bilan et rappels</button><button class="alt" id="ab-btn" type="button">Sauvegarde auto</button><button class="alt" id="tr-btn" type="button">Corbeille</button><button class="alt" id="guide" type="button">Mode d'emploi</button><button class="alt" id="rename" type="button">Nom de ma boutique</button><button class="alt" id="pin-btn" type="button">Code PIN</button><button class="alt" id="act-btn" type="button">Activer l'application</button></div>
+<input id="file" type="file" accept=".json" hidden>
+</section>
+<p class="meta" id="ios-hint" hidden>Sur iPhone : appuie sur le bouton Partager de Safari, puis sur « Sur l'écran d'accueil ».</p>
+<p class="meta" id="foot"></p>
+</main>
+
+<div class="modal" id="m1"><div class="box">
+<h2 id="mt">Commande</h2>
+<details style="margin-bottom:8px"><summary style="cursor:pointer;font-weight:600;font-family:system-ui,sans-serif">Coller un message WhatsApp</summary>
+<textarea id="f-paste" placeholder="Colle ici le message du client"></textarea>
+<div class="btns"><button class="alt" id="f-parse" type="button">Remplir automatiquement</button></div>
+<div class="meta" id="f-pres" style="margin-top:6px"></div></details>
+<label for="f-vague">Client ID (automatique si vide)</label><input id="f-vague" list="vagues" placeholder="Automatique, ex. CL-001"><datalist id="vagues"></datalist>
+<label for="f-nom">Nom du client</label><input id="f-nom">
+<label for="f-tel">Numéro WhatsApp</label><input id="f-tel" type="tel" inputmode="tel" placeholder="+237 6XX XX XX XX">
+<label for="f-lang">Langue des messages et du reçu</label><select id="f-lang"><option value="fr">Français</option><option value="en">English</option></select>
+<label>Produits</label><div id="f-items"></div>
+<button class="alt" id="add-item" type="button" style="width:100%;margin-top:4px">+ Ajouter un produit</button>
+<label style="margin-top:12px">Versements (acompte, solde…)</label><div id="f-pays"></div>
+<button class="alt" id="add-pay" type="button" style="width:100%;margin-top:4px">+ Ajouter un versement</button>
+<label for="f-echeance">Échéance du solde (facultatif)</label><input id="f-echeance" type="date">
+<div class="g2">
+<div><label for="f-cout">Mon coût d'achat total (FCFA)</label><input id="f-cout" type="number" inputmode="numeric" min="0" placeholder="Pour calculer mon bénéfice"></div>
+<div><label for="f-st">Statut</label><select id="f-st"></select></div>
+</div>
+<label for="f-ville">Ville</label><select id="f-ville"></select>
+<label for="f-adresse">Adresse de livraison (facultatif)</label><input id="f-adresse" placeholder="Rue, immeuble, repère…">
+<label for="f-zone">Quartier / zone de livraison</label><input id="f-zone" list="zlist" placeholder="Choisis ou tape un quartier"><datalist id="zlist"></datalist><datalist id="plist"></datalist>
+<label for="f-note">Autres notes (facultatif)</label><input id="f-note">
+<div class="meta" id="f-reste" style="margin-top:8px"></div>
+<div class="btns"><button id="ok" type="button">Enregistrer</button><button class="alt" id="f-dv" type="button">Enregistrer comme devis</button><button class="alt" id="no" type="button">Annuler</button></div>
+</div></div>
+
+<div class="modal" id="m2" style="z-index:6"><div class="box">
+<h2>Message WhatsApp</h2>
+<div class="meta" id="wa-to" style="margin-bottom:6px"></div>
+<label for="wa-txt">Modifie le message avant d'envoyer</label>
+<textarea id="wa-txt"></textarea>
+<div class="btns"><a class="btn" id="wa-go" href="#" target="_blank" rel="noopener">Ouvrir WhatsApp</a><button class="alt" id="wa-img" type="button">Envoyer le reçu en image</button><button class="alt" id="wa-cp" type="button">Copier le message</button><button class="alt" id="wa-x" type="button">Fermer</button></div>
+</div></div>
+
+<div class="modal" id="m10"><div class="box">
+<h2>Bilan et rappels</h2>
+<p class="meta" id="b-txt"></p>
+<label for="b-p">Période du bilan</label>
+<select id="b-p"><option value="j">Journée</option><option value="s">Semaine</option><option value="m">Mois</option><option value="a">Année</option><option value="c">Personnalisé</option></select>
+<label for="b-d" id="b-dlab">Date de référence</label><input id="b-d" type="date"><div id="b-d2w" hidden><label for="b-d2">Au</label><input id="b-d2" type="date"></div>
+<p class="meta" id="b-range"></p>
+<div class="btns"><button id="b-dl" type="button">Télécharger en Excel</button><button class="alt" id="b-dc" type="button">Télécharger en CSV</button></div>
+<h3 style="margin:16px 0 0;font-size:1rem">Rappels</h3>
+<label for="b-h">Heure du rappel</label><input id="b-h" type="time" value="20:00">
+<label class="ck"><input type="checkbox" id="b-ej"> Chaque jour</label>
+<label class="ck"><input type="checkbox" id="b-es"> Chaque semaine (le dimanche)</label>
+<label class="ck"><input type="checkbox" id="b-em"> Chaque mois (le dernier jour)</label>
+<label class="ck"><input type="checkbox" id="b-ea"> Chaque année (le 31 décembre)</label>
+<label for="b-wh" style="margin-top:12px">Me rappeler si un client ne répond pas après</label>
+<select id="b-wh"><option value="2">2 heures</option><option value="6">6 heures</option><option value="12">12 heures</option><option value="24">24 heures</option><option value="48">48 heures</option></select>
+<div class="btns"><button class="alt" id="b-nt" type="button">Activer les notifications</button></div>
+<p class="meta" id="b-ns"></p>
+<div class="btns"><button id="b-sv" type="button">Enregistrer les réglages</button><button class="alt" id="b-x" type="button">Fermer</button></div>
+<p class="meta">Les rappels s'affichent quand l'application est ouverte (ou en arrière-plan), sinon à ta prochaine ouverture. WhatsApp reste le seul à t'avertir quand un client répond : OrderPro te rappelle, lui, les clients qui n'ont pas répondu.</p>
+</div></div>
+<div class="modal" id="m11"><div class="box"><h2>Clients sans réponse</h2><div id="w-list"></div><div class="btns"><button class="alt" id="w-x" type="button">Fermer</button></div></div></div>
+<div class="modal" id="m12"><div class="box"><h2>Livraisons</h2>
+<label for="lv-z">Quartier / zone</label><select id="lv-z"></select>
+<label for="lv-t">WhatsApp du livreur</label><input id="lv-t" type="tel" inputmode="tel" placeholder="+237 6XX XX XX XX">
+<div class="meta" id="lv-sum" style="margin:8px 0"></div>
+<div id="lv-list"></div>
+<div class="btns"><button id="lv-all" type="button">Envoyer toute la tournée</button><button class="alt" id="lv-x" type="button">Fermer</button></div>
+</div></div>
+<div class="modal" id="m13"><div class="box"><h2>Reçu en image</h2>
+<img id="ri-img" alt="Reçu" style="width:100%;border-radius:8px;border:1px solid var(--line)">
+<div class="btns"><button id="ri-sh" type="button">Envoyer au client</button><button class="alt" id="ri-cp" type="button">Copier l'image</button><button class="alt" id="ri-dl" type="button">Télécharger l'image</button><button class="alt" id="ri-x" type="button">Fermer</button></div>
+</div></div>
+<div class="modal" id="m14"><div class="box"><h2>Calculatrice</h2>
+<div id="c-disp">0</div><div class="kp" id="c-kp"></div>
+<h3 style="margin:16px 0 0;font-size:1rem">Rendu de monnaie</h3>
+<label for="c-due">Montant à payer (FCFA)</label><input id="c-due" type="number" inputmode="numeric" min="0">
+<label for="c-rec">Montant reçu (FCFA)</label><input id="c-rec" type="number" inputmode="numeric" min="0">
+<div class="btns" id="c-q"></div>
+<div id="c-res" style="margin-top:10px;font-weight:700;font-size:1.1rem;font-family:system-ui,sans-serif"></div>
+<div class="btns"><button class="alt" id="c-x" type="button">Fermer</button></div>
+</div></div>
+
+<div class="modal" id="m15"><div class="box"><h2>Fiches clients</h2>
+<div id="cl-lw"><input id="cl-q" type="search" placeholder="Nom, numéro, Client ID ou quartier"><div id="cl-list" style="margin-top:10px"></div></div>
+<div id="cl-det" hidden></div>
+<div class="btns"><button class="alt" data-x="m15" type="button">Fermer</button></div></div></div>
+<div class="modal" id="m16"><div class="box"><h2>Devis en attente</h2><p class="meta">Un devis n'est pas une commande : il ne compte ni dans le bilan ni dans les impayés. Transforme-le en commande quand le client confirme.</p>
+<div class="btns"><button id="dv-new" type="button">+ Nouveau devis</button></div><div id="dv-list" style="margin-top:10px"></div>
+<div class="btns"><button class="alt" data-x="m16" type="button">Fermer</button></div></div></div>
+<div class="modal" id="m17"><div class="box"><h2>Stock local</h2><p class="meta">La quantité baisse automatiquement quand tu enregistres une commande avec un produit de cette liste (même nom), et remonte si tu annules ou supprimes la commande.</p>
+<label for="sk-n">Produit</label><input id="sk-n" list="plist" placeholder="Nom du produit">
+<div class="g2"><div><label for="sk-q">Quantité en stock</label><input id="sk-q" type="number" inputmode="numeric" min="0"></div><div><label for="sk-s">Alerte quand il reste</label><input id="sk-s" type="number" inputmode="numeric" min="0" value="2"></div></div>
+<div class="btns"><button id="sk-ok" type="button">Ajouter</button><button class="alt" id="sk-cl" type="button">Vider le formulaire</button></div>
+<div id="sk-list" style="margin-top:12px"></div>
+<div class="btns"><button class="alt" data-x="m17" type="button">Fermer</button></div></div></div>
+<div class="modal" id="m18"><div class="box"><h2>Sauvegarde automatique</h2>
+<p class="meta">L'application garde chaque jour une copie dans ce téléphone (les 3 dernières). Elle te protège d'une erreur, mais pas de la perte du téléphone : envoie régulièrement le fichier de sauvegarde sur WhatsApp ou Google Drive.</p>
+<label class="ck"><input type="checkbox" id="ab-c"> Copie automatique chaque jour</label>
+<label for="ab-f">Me rappeler de faire une sauvegarde</label><select id="ab-f"><option value="3">Tous les 3 jours</option><option value="7">Toutes les semaines</option><option value="14">Toutes les 2 semaines</option><option value="0">Jamais</option></select>
+<div class="btns"><button id="ab-now" type="button">Sauvegarder maintenant (fichier)</button></div>
+<h3 style="margin:16px 0 6px;font-size:1rem">Copies automatiques</h3><div id="ab-list"></div>
+<div class="btns"><button class="alt" data-x="m18" type="button">Fermer</button></div></div></div>
+<div class="modal" id="m19"><div class="box"><h2>Corbeille</h2><p class="meta">Les commandes supprimées restent ici 30 jours, puis disparaissent définitivement.</p>
+<div id="tr-list"></div><div class="btns"><button class="del" id="tr-all" type="button">Vider la corbeille</button><button class="alt" data-x="m19" type="button">Fermer</button></div></div></div>
+<div id="toast" hidden style="position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);background:var(--ink);color:var(--bg);padding:12px;border-radius:10px;z-index:8;font-family:system-ui,sans-serif;text-align:center"></div>
+<div class="modal" id="m3"><div class="box">
+<h2>Bienvenue</h2>
+<p>Suis tes commandes, tes acomptes et tes relances WhatsApp au même endroit.</p>
+<label for="w-nom">Nom de ta boutique</label><input id="w-nom" placeholder="Ex. Ma Boutique Import">
+<label for="w-mode">Type d'activité</label><select id="w-mode"><option value="import">J'importe (achats en Chine, livraison plus tard)</option><option value="stock">J'ai la marchandise sur place</option></select>
+<div class="btns"><button id="w-go" type="button">Commencer</button><button class="alt" id="w-demo" type="button">Voir avec 3 exemples</button></div>
+</div></div>
+<div class="modal" id="m4"><div class="box">
+<h2>Mode d'emploi</h2>
+<ol style="padding-left:20px;font-family:system-ui,sans-serif;font-size:.92rem">
+<li>Appuie sur « Nouvelle commande » et remplis le client, le produit, le prix et l'acompte.</li>
+<li>Renseigne le Client ID (ex. CL-001) : les totaux et les filtres se calculent par Client ID.</li>
+<li id="g-st"></li>
+<li>« Relancer sur WhatsApp » ouvre un message prêt selon le statut. Tu peux le modifier avant l'envoi.</li>
+<li>Filtre par Client ID, statut ou nom pour retrouver une commande.</li>
+<li><b>Sauvegarde chaque semaine</b> : tes données sont uniquement dans ce navigateur. Garde le fichier sur Google Drive ou WhatsApp.</li>
+<li>Pour changer de téléphone : Sauvegarder, puis Restaurer sur le nouvel appareil.</li>
+<li><b>Nouveautés</b> : chaque versement a un mode de paiement (Cash, MTN MoMo, Orange Money…) et une référence ; « Fiches clients » regroupe l'historique de chaque client ; « Devis » prépare une offre avant commande ; « Stock » suit tes quantités ; « Mode discret » floute les montants ; « Sauvegarde auto » garde des copies et te rappelle d'envoyer ton fichier ; « Corbeille » garde 30 jours les commandes supprimées. Choisis « English » pour écrire et émettre le reçu en anglais.</li>
+<li>Bilan et rappels : choisis la période (jour, semaine, mois ou année) et télécharge le fichier CSV. Tu peux aussi activer un rappel automatique.</li>
+<li>Après un message envoyé depuis l'application, le client passe en « attente de réponse ». Si personne ne répond dans le délai choisi, tu reçois un rappel.</li>
+<li>Les pastilles de couleur indiquent l'urgence : 🔴 incomplète ou impayée, 🟠 prête à livrer, 🟢 soldée ou livrée. Glisse une commande vers la droite pour « Livré », vers la gauche pour « Relancé ». Le bouton « Appeler » lance l'appel, et le filtre « Quartier / zone » regroupe les livraisons.</li>
+<li>Dans une nouvelle commande, « Coller un message WhatsApp » remplit les champs à ta place : vérifie toujours le résultat. « Livraisons » prépare la tournée du livreur, et « Calculatrice » calcule le rendu de monnaie.</li>
+</ol>
+<div class="btns"><button id="g-x" type="button">Fermer</button></div>
+</div></div>
+<div class="modal" id="m5"><div class="box"><h2>Qui me doit de l'argent</h2><div class="meta" id="d-tot" style="margin-bottom:10px"></div><div id="d-list"></div><div class="btns"><button class="alt" id="d-x" type="button">Fermer</button></div></div></div>
+<div class="modal" id="m7"><div class="box"><h2>Code PIN</h2><p class="meta">Le code bloque l'ouverture de l'application et chiffre tes données sur ce téléphone. Choisis 6 chiffres ou plus pour une meilleure protection. En cas d'oubli, les données ne peuvent pas être récupérées : garde une sauvegarde. Attention : les fichiers de sauvegarde ne sont pas chiffrés.</p><label for="p-new">Nouveau code (4 à 8 chiffres)</label><input id="p-new" type="password" inputmode="numeric" autocomplete="off"><div class="btns"><button id="p-ok" type="button">Enregistrer le code</button><button class="del" id="p-rm" type="button">Retirer le code</button><button class="alt" id="p-x" type="button">Annuler</button></div></div></div>
+<div class="modal" id="m8"><div class="box"><h2>Activer l'application</h2><p class="meta">Version d'essai limitée à 5 commandes. Entre la clé de licence commerciale reçue après ton achat.</p><label for="a-id">Clé de licence commerciale</label><input id="a-id" autocapitalize="characters" autocomplete="off" placeholder="OP-XXXXXXXXXXXXXXXXXXXXXXXX"><div hidden><label for="a-code">Ancien code d'activation</label><input id="a-code" autocapitalize="characters" autocomplete="off"></div><div class="meta" id="a-err" style="color:var(--red);margin-top:6px"></div><div class="btns"><button id="a-ok" type="button">Activer</button><button class="alt" id="a-x" type="button">Fermer</button></div></div></div>
+<div class="modal" id="m6" style="z-index:9;align-items:center"><div class="box"><h2>Code PIN</h2><label for="l-in">Entre ton code</label><input id="l-in" type="password" inputmode="numeric" autocomplete="off"><div class="meta" id="l-err" style="color:var(--red);margin-top:6px"></div><div class="btns"><button id="l-go" type="button">Déverrouiller</button></div></div></div>
+<script src="mobile-ui.js"></script>
+<script src="license-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+/* OrderPro — interface mobile additive. Aucun effet dans l'application Windows. */
+@media (max-width:899px){
+  body.mobile-ready{padding-bottom:82px}
+  body.mobile-ready main{padding:12px 12px 92px}
+  body.mobile-ready main>section{border-radius:14px;padding:12px}
+  body.mobile-ready h1{font-size:1.35rem}
+  body.mobile-ready .stats{gap:6px}
+  body.mobile-ready .stats div{padding:8px 7px}
+  body.mobile-ready .stats b{font-size:.98rem}
+  body.mobile-ready .btns{gap:6px}
+  body.mobile-ready .btns>*{min-height:44px}
+  body.mobile-ready #list>.card{padding:12px;margin-bottom:10px}
+  body.mobile-ready #list .card .btns button,body.mobile-ready #list .card .btns a{min-height:42px}
+  #mobile-nav{position:fixed;left:8px;right:8px;bottom:8px;z-index:11;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px;background:rgba(1,60,44,.96);border:1px solid rgba(255,255,255,.18);border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.28);font-family:system-ui,sans-serif;backdrop-filter:blur(8px)}
+  #mobile-nav[hidden]{display:none}
+  #mobile-nav button{min-width:0;min-height:52px;padding:5px 2px;background:transparent;color:#e7f5ef;border:0;border-radius:12px;box-shadow:none;font-size:.68rem;font-weight:700;line-height:1.1}
+  #mobile-nav button .mi{display:block;font-size:1.25rem;margin-bottom:3px}
+  #mobile-nav button.active,#mobile-nav button:active{background:#138e67;color:#fff}
+  #mobile-add{position:fixed;right:18px;bottom:92px;z-index:10;width:58px;height:58px;padding:0;border-radius:50%;font-size:1.8rem;line-height:1;background:var(--acc);color:var(--accink);box-shadow:0 8px 22px rgba(0,0,0,.26)}
+  #mobile-add[hidden]{display:none}
+  #mobile-nav .mi,#mobile-add{font-family:system-ui,sans-serif}
+  .modal.on~#mobile-nav,.modal.on~#mobile-add{display:none}
+}

@@ -1,0 +1,20 @@
+ORDERPRO MOBILE — AMÉLIORATION INTERFACE
+========================================
+
+Cette couche améliore la version PWA mobile sans remplacer les fonctions existantes.
+
+Améliorations :
+- barre de navigation mobile fixe : Accueil, Commandes, Clients, Données, Plus ;
+- bouton flottant « + » pour créer rapidement une commande ;
+- boutons et cartes adaptés au toucher ;
+- espace inférieur réservé à la navigation pour éviter de cacher le contenu ;
+- fonctionnement désactivé automatiquement dans l'application Windows afin de ne pas modifier son menu PC ;
+- cache PWA mis à jour vers orderpro-v9 avec les nouveaux fichiers mobiles.
+
+Pour installer :
+1. sauvegarder les fichiers actuels du site mobile ;
+2. remplacer les fichiers de ce dossier sur l'hébergement PWA ;
+3. ouvrir l'application mobile et recharger une fois ;
+4. si l'ancien affichage reste présent, fermer l'onglet ou vider le cache du site puis rouvrir OrderPro.
+
+Ne pas supprimer localStorage ou les données de l'application.

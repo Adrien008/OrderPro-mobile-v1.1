@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.adrien008.orderpro",
+        "sha256_cert_fingerprints": ["B4:C4:5B:A2:8A:C0:E3:C5:9B:A6:FD:5B:D2:4A:48:15:82:23:B6:F5:F8:72:0F:7B:33:57:1A:D5:F0:C3:1C:4E"]
+      }
+    }]

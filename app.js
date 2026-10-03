@@ -215,11 +215,12 @@ function plain(){dl("sauvegarde-commandes.json",txt,"application/json");stamp()}
 try{var fl=new File([txt],"sauvegarde-commandes.json",{type:"application/json"});
 if(navigator.canShare&&navigator.canShare({files:[fl]})){navigator.share({files:[fl],title:"Sauvegarde OrderPro"}).then(stamp,function(e){if(!e||e.name!=="AbortError")plain()});return}}catch(e){}
 plain()});
-$("load").addEventListener("click",function(){$("file").click()});
-$("file").addEventListener("change",function(){var f=this.files[0];if(!f)return;var r=new FileReader();
+function importBackupFile(f){if(!f)return;var r=new FileReader();
 r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d))throw 0;
 if(confirm("Remplacer les données actuelles par cette sauvegarde ("+cntOrders(d)+" commandes) ?")){unpack(d);data.forEach(norm);store();refreshFilters();render()}}catch(e){alert("Fichier invalide.")}};
-r.readAsText(f);this.value=""});
+r.readAsText(f)}
+$("load").addEventListener("click",function(){$("file").click()});
+$("file").addEventListener("change",function(){importBackupFile(this.files[0]);this.value=""});
 
 // ===== STOCKAGE LOCAL : lecture / écriture dans le navigateur (localStorage) =====
 function lsg(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -871,11 +872,35 @@ $("ab-c").addEventListener("change",function(){lss("pc_abc",this.checked?"1":"0"
 $("ab-now").addEventListener("click",function(){$("save").click()});
 
 
+// ===== CAPACITÉS PWA MOBILES =====
+function runMobileIntent(){
+  var u=new URL(location.href),p=u.searchParams,action=p.get("action"),protocol=p.get("protocol");
+  var title=p.get("title")||"",text=p.get("text")||"",sharedUrl=p.get("url")||"";
+  if(protocol){text=protocol;action="share"}
+  var payload=[title,text,sharedUrl].filter(function(x){return String(x||"").trim()}).join("\n");
+  if(!action&&!payload)return;
+  history.replaceState({},"",location.pathname);
+  function later(fn){setTimeout(function(){if($("m3")&&$("m3").classList.contains("on"))$("m3").classList.remove("on");fn()},500)}
+  if(action==="new-order")return later(function(){$("add").click()});
+  if(action==="orders")return later(function(){$("list").scrollIntoView({behavior:"smooth",block:"start"})});
+  if(action==="clients")return later(function(){$("cl-btn").click()});
+  if(action==="backup")return later(function(){$("ab-btn").click()});
+  if(payload)return later(function(){$("add").click();$("f-paste").value=payload;$("f-parse").click()});
+}
+function setupMobileLaunchFiles(){
+  if(!window.launchQueue||!window.LaunchParams)return;
+  launchQueue.setConsumer(function(params){
+    var f=params.files&&params.files[0];
+    if(f&&f.getFile)f.getFile().then(importBackupFile).catch(function(){});
+  });
+}
+
 // ===== DÉMARRAGE : chargement des données, verrouillage et affichage =====
 function boot(){data.forEach(function(c){if(!c.demo&&c.vague==="Vague exemple"&&/^\+237 6700000/.test(c.tel||"")){c.demo=true;c.vague=DEMO}});data.forEach(norm);purgeTrash();applyPriv();refreshFilters();render();warn();bilanCheck()}
 head();setMode(lsg("pc_mode")||"import");checkAct();
 if(lsg("pc_enc")==="1"){$("m6").classList.add("on")}else{load();boot();if(lsg("pc_pin"))$("m6").classList.add("on")}
 if(!lsg("pc_seen"))$("m3").classList.add("on");
+setupMobileLaunchFiles();runMobileIntent();
 setInterval(bilanCheck,60000);
 })();
 

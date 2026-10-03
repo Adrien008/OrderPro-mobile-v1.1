@@ -1,36 +1,67 @@
 /* OrderPro - service worker : fonctionnement hors-ligne.
  * Stratégie : réseau d'abord (pour recevoir les mises à jour), puis cache si pas de connexion. */
-const CACHE = "orderpro-v9";
-const FICHIERS = ["./", "./index.html", "./style.css", "./app.js", "./desktop.css", "./desktop.js", "./desktop-ui.css", "./desktop-ui.js", "./mobile-ui.css", "./mobile-ui.js", "./license-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "orderpro-mobile-v10";
 
-// Installation : mise en cache des fichiers de base
+const FICHIERS = [
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./mobile-ui.css",
+  "./mobile-ui.js",
+  "./license-config.js",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
+];
+
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FICHIERS)));
+  e.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(FICHIERS))
+  );
   self.skipWaiting();
 });
 
-// Activation : suppression des anciens caches
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((cles) => Promise.all(cles.filter((k) => k !== CACHE).map((k) => caches.delete(k)))));
+  e.waitUntil(
+    caches.keys().then((cles) =>
+      Promise.all(
+        cles
+          .filter((cle) => cle !== CACHE)
+          .map((cle) => caches.delete(cle))
+      )
+    )
+  );
   self.clients.claim();
 });
 
-// Requêtes : réseau d'abord, cache en secours
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+
   e.respondWith(
     fetch(e.request)
-      .then((rep) => {
-        const copie = rep.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copie));
-        return rep;
+      .then((reponse) => {
+        const copie = reponse.clone();
+        caches.open(CACHE).then((cache) => {
+          cache.put(e.request, copie);
+        });
+        return reponse;
       })
-      .catch(() => caches.match(e.request).then((m) => m || caches.match("./index.html")))
+      .catch(() =>
+        caches.match(e.request).then(
+          (reponse) => reponse || caches.match("./index.html")
+        )
+      )
   );
 });
 
-// Clic sur une notification : ouvrir l'application
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  e.waitUntil(clients.matchAll({ type: "window" }).then((l) => (l.length ? l[0].focus() : clients.openWindow("./"))));
+  e.waitUntil(
+    clients.matchAll({ type: "window" }).then((fenetres) =>
+      fenetres.length
+        ? fenetres[0].focus()
+        : clients.openWindow("./")
+    )
+  );
 });

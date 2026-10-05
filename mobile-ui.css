@@ -19,5 +19,9 @@
   #mobile-add{position:fixed;right:18px;bottom:92px;z-index:10;width:58px;height:58px;padding:0;border-radius:50%;font-size:1.8rem;line-height:1;background:var(--acc);color:var(--accink);box-shadow:0 8px 22px rgba(0,0,0,.26)}
   #mobile-add[hidden]{display:none}
   #mobile-nav .mi,#mobile-add{font-family:system-ui,sans-serif}
+  /* Reçu mobile : aperçu compact, lisible et facile à partager. La qualité
+     du fichier PNG téléchargé reste inchangée. */
+  #m13 .box{width:calc(100vw - 24px);max-width:560px;max-height:calc(100vh - 24px);overflow:auto;padding:12px}
+  #m13 #ri-img{display:block;width:auto !important;max-width:100% !important;height:auto !important;max-height:55vh !important;object-fit:contain;margin:0 auto}
   .modal.on~#mobile-nav,.modal.on~#mobile-add{display:none}
 }

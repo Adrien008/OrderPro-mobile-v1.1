@@ -1,7 +1,7 @@
 /* OrderPro - service worker : fonctionnement hors-ligne.
  * Stratégie : réseau d'abord (pour recevoir les mises à jour), puis cache si pas de connexion. */
-const CACHE = "orderpro-mobile-v11";
-const FICHIERS = ["./", "./index.html", "./style.css", "./app.js", "./mobile-ui.css", "./mobile-ui.js", "./license-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "orderpro-v10";
+const FICHIERS = ["./", "./index.html", "./style.css", "./app.js", "./desktop.css", "./desktop.js", "./desktop-ui.css", "./desktop-ui.js", "./mobile-ui.css", "./mobile-ui.js", "./license-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 // Installation : mise en cache des fichiers de base
 self.addEventListener("install", (e) => {

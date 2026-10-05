@@ -4,7 +4,7 @@
  * Contact officiel : voir APP.contact ci-dessous.
  */
 (function(){
-var APP={nom:"OrderPro",contact:"nlompaaadrien@gmail.com",version:"1.5",essai:5,secret:"ac1b66d889b9"};
+var APP={nom:"OrderPro",contact:"nlompaaadrien@gmail.com",version:"1.8.3",essai:5,secret:"ac1b66d889b9"};
 var STI=["Commandée","Acompte reçu","Achetée en Chine","En transit","Arrivée à Douala","Livrée","Annulée"],STS=["Réservée","Acompte reçu","Prête à livrer","Livrée","Annulée"],ST=STI,mode="import";
 var active=false,view="real",DEMO="Vague d'exemple",KEY="pc_commandes",data=[],trash=[],devis=[],stk=[],fromDv=0,editId=null,mem=null,shop="";
 function load(){try{var v=localStorage.getItem(KEY);if(v)unpack(JSON.parse(v)||[])}catch(e){data=[]}}
@@ -34,7 +34,7 @@ function render(){
 var dm=view==="demo";updateWaitBar();updMode();renderHome();$("demobar").hidden=!dm;$("add").hidden=dm;$("fv").parentNode.hidden=dm;$("t-real").className=dm?"alt":"";$("t-demo").className=dm?"":"alt";
 var l=shown(),t=0,e=0,r=0,n=0,bf=0,hb=false;
 l.forEach(function(c){if(c.statut==="Annulée")return;n++;t+=num(c.total);e+=num(c.acompte);r+=reste(c);if(c.cout>0){hb=true;bf+=num(c.total)-c.cout}});
-$("dtitle").textContent="Statistiques : "+(dm?DEMO:($("fv").value||"tous les Client ID"));
+$("dtitle").textContent="Statistiques";
 $("s-n").textContent=n;$("s-t").textContent=fmt(t)+" F";$("s-e").textContent=fmt(e)+" F";$("s-r").textContent=fmt(r)+" F";$("s-bw").hidden=!hb;$("s-b").textContent=fmt(bf)+" F";
 var box=$("list");box.innerHTML="";
 /* La version Windows utilise un tableau lisible et filtrable. Le mobile et le navigateur conservent les cartes existantes. */
@@ -105,9 +105,9 @@ var gw=mk("div",{});gw.style.gridColumn="1 / 3";gw.appendChild(mk("label",{textC
 var gs=mk("select",{});[["m","Masculin : ton, le"],["f","Féminin : ta, la"],["p","Pluriel : tes, les"]].forEach(function(o){gs.appendChild(mk("option",{value:o[0],textContent:o[1]}))});gs.value=it.g;
 gs.addEventListener("change",function(){it.g=gs.value;it.gm=true});gw.appendChild(gs);
 a.setAttribute("list","plist");
-a.addEventListener("input",function(){it.p=a.value;if(!it.gm){it.g=guessG(a.value);gs.value=it.g}});
+a.addEventListener("input",function(){it.p=a.value;if(!it.gm){it.g=guessG(a.value);gs.value=it.g}s.placeholder=SHOE.test(noacc(it.p||""))?"Pointure":"Taille"});
 a.addEventListener("change",function(){var m=prodMem()[a.value.trim().toLowerCase()];if(!m)return;if(!num(it.t)&&m.u){it.t=Math.round(m.u*(num(it.q)||1));t.value=it.t}if(!it.gm&&m.g){it.g=m.g;gs.value=m.g;it.gm=true}calcReste()});
-var s=mk("input",{value:it.s||"",placeholder:"Taille/Pointure"});s.style.gridColumn="1 / 3";
+var s=mk("input",{value:it.s||"",placeholder:SHOE.test(noacc(it.p||""))?"Pointure":"Taille"});s.style.gridColumn="1 / 3";
 var nk=mk("label",{});nk.style.cssText="grid-column:1 / 3;display:flex;gap:8px;align-items:center;margin:0";
 var ck=mk("input",{type:"checkbox",checked:!!it.n});ck.style.cssText="width:auto;margin:0";nk.appendChild(ck);nk.appendChild(document.createTextNode("Pas de taille/pointure"));
 function sz(){s.disabled=ck.checked;if(ck.checked){s.value="";it.s=""}s.placeholder=ck.checked?"Pas de taille/pointure":"Taille/Pointure"}
@@ -130,7 +130,13 @@ $("add-item").addEventListener("click",function(){fItems.push({p:"",q:1,t:0});dr
 $("add-pay").addEventListener("click",function(){fPays.push({d:today(),m:0,mode:lsg("pc_pm")||"",ref:""});drawPays();calcReste()});
 
 // ===== FORMULAIRE DE COMMANDE (création et modification) =====
+function fillClientSuggestions(){var dl=$("clients-list");if(!dl)return;dl.innerHTML="";clientList().forEach(function(e){var o=document.createElement("option");o.value=e.nom;o.label=fmtT(e.tel)+(e.zone?" · "+e.zone:"");dl.appendChild(o)})}
+function useExistingClient(){var name=noacc($("f-nom").value.trim()),e=clientList().filter(function(x){return noacc(x.nom)===name})[0];if(!e){$("f-client-hint").textContent="Nouveau client : vérifie le nom et le numéro WhatsApp.";return}
+$("f-tel").value=e.tel||"+237 ";if(!$("f-vague").value.trim())$("f-vague").value=e.id||"";if(e.ville){$("f-ville").value=e.ville;fillQ()}$("f-adresse").value=e.adresse||"";$("f-zone").value=e.zone||"";$("f-note").value=e.note||"";$("f-lang").value=e.lang||"fr";$("f-client-hint").textContent="Coordonnées reprises de la fiche client : "+fmtT(e.tel)+(e.zone?" · "+e.zone:"")}
+$("f-nom").addEventListener("change",useExistingClient);
+$("f-nom").addEventListener("blur",useExistingClient);
 function openForm(c){editId=c?c.id:null;$("mt").textContent=c?"Modifier la commande":"Nouvelle commande";
+fillClientSuggestions();$("f-client-hint").textContent=c?"Modifie les informations de cette commande sans changer la fiche des autres commandes.":"Choisis un client existant pour reprendre automatiquement ses coordonnées.";
 opt($("f-st"),ST);fillPlist();var cur=$("fv").value;
 $("f-vague").value=c?c.vague:"";$("f-nom").value=c?c.nom:"";$("f-adresse").value=c?(c.adresse||""):"";$("f-zone").value=c?(c.zone||""):"";opt($("f-ville"),VILLES);$("f-ville").value=(c&&c.ville)||lsg("pc_ville")||"Douala";fillQ();$("f-tel").value=c?c.tel:"+237 ";
 fItems=c?c.items.map(function(i){return{p:i.p,q:i.q,t:i.t,g:i.g,gm:!!i.g,s:i.s,n:i.n,co:i.co}}):[{p:"",q:1,t:0}];
@@ -146,7 +152,12 @@ if(old&&old.demo)o.demo=true;
 o.su=(old&&old.statut===o.statut)?(old.su||""):today();
 qRemember(o.ville,o.zone);lss("pc_ville",o.ville);
 if(!o.nom||!its.length){alert("Renseigne au moins le nom du client et un produit.");return}
+if(digits(o.tel).length<=3)o.tel="";
+if(o.tel&&!validTel(o.tel)){alert("Le numéro WhatsApp semble incomplet. Corrige-le ou efface-le si le client n'en a pas.");return}
 sync(o);
+var sig=o.items.map(function(i){return noacc(i.p)+"|"+(num(i.q)||1)+"|"+num(i.t)}).join("||"),dup=!editId&&o.tel&&data.filter(function(c){return!c.demo&&c.statut!=="Annulée"&&digits(c.tel)===digits(o.tel)&&c.items.map(function(i){return noacc(i.p)+"|"+(num(i.q)||1)+"|"+num(i.t)}).join("||")===sig})[0];
+if(dup&&!confirm("Une commande très similaire existe déjà pour "+dup.nom+" ("+dup.vague+"). Est-ce bien une nouvelle commande ?"))return;
+if(o.acompte>o.total&&!confirm("Les versements dépassent le total de la commande. Enregistrer quand même ?"))return;
 var oMap=old?stockMap(old):{};
 if(editId){data=data.map(function(x){return x.id===editId?o:x})}else{data.push(o)}
 stockApply(oMap,stockMap(o));if(fromDv){devis=devis.filter(function(d){return d.id!==fromDv});fromDv=0}
@@ -210,17 +221,27 @@ $("wa-txt").addEventListener("input",upd);$("wa-x").addEventListener("click",fun
 ["fv","fs","fq","fz"].forEach(function(i){$(i).addEventListener("input",render)});
 function dl(name,text,type){var a=document.createElement("a");a.href="data:"+type+";charset=utf-8,"+encodeURIComponent(text);a.download=name;
 var ok=false;try{a.click();ok=true}catch(e){}return ok}
-$("save").addEventListener("click",function(){var txt=JSON.stringify(pack().filter(function(c){return!c.demo}));
-function plain(){dl("sauvegarde-commandes.json",txt,"application/json");stamp()}
-try{var fl=new File([txt],"sauvegarde-commandes.json",{type:"application/json"});
-if(navigator.canShare&&navigator.canShare({files:[fl]})){navigator.share({files:[fl],title:"Sauvegarde OrderPro"}).then(stamp,function(e){if(!e||e.name!=="AbortError")plain()});return}}catch(e){}
-plain()});
-function importBackupFile(f){if(!f)return;var r=new FileReader();
-r.onload=function(){try{var d=JSON.parse(r.result);if(!Array.isArray(d))throw 0;
-if(confirm("Remplacer les données actuelles par cette sauvegarde ("+cntOrders(d)+" commandes) ?")){unpack(d);data.forEach(norm);store();refreshFilters();render()}}catch(e){alert("Fichier invalide.")}};
-r.readAsText(f)}
+function shareOrDownloadBackup(text,name,type){try{var fl=new File([text],name,{type:type});if(navigator.canShare&&navigator.canShare({files:[fl]})){navigator.share({files:[fl],title:"Sauvegarde OrderPro"}).then(stamp,function(e){if(!e||e.name!=="AbortError")dl(name,text,type)});return}}catch(e){}dl(name,text,type);stamp()}
+$("save").addEventListener("click",function(){
+  if(lsg("pc_enc")!=="1"||!ek){alert("Active d'abord la protection par code PIN : une sauvegarde non chiffrée n'est pas autorisée.");$("m7").classList.add("on");return}
+  var txt=JSON.stringify(pack().filter(function(c){return!c.demo}));
+  encBlob(ek,eSalt,txt).then(function(packet){shareOrDownloadBackup(packet,"sauvegarde-orderpro.opbak","application/json")}).catch(function(){alert("Impossible de chiffrer la sauvegarde.")});
+});
+function applyBackupData(d,pin){if(!Array.isArray(d))throw 0;if(lsg("pc_enc")!=="1"&&!pin){alert("Active d'abord la protection par code PIN, puis restaure cette ancienne sauvegarde.");$("m7").classList.add("on");return}if(!confirm("Remplacer les données actuelles par cette sauvegarde ("+cntOrders(d)+" commandes) ?"))return;
+unpack(d);data.forEach(norm);
+function done(){store();refreshFilters();render();stamp();alert("Sauvegarde restaurée et protégée.")}
+if(pin&&lsg("pc_enc")!=="1"&&canCrypto)enableEnc(pin).then(function(ok){if(ok)done();else alert("Impossible de protéger cette restauration.")});else done()}
+function restoreBackupText(raw){var obj;try{obj=JSON.parse(raw)}catch(e){alert("Fichier invalide.");return}
+if(obj&&obj.v===1&&obj.s&&obj.i&&obj.d){
+  var salt;try{salt=unb64(obj.s)}catch(e){alert("Sauvegarde chiffrée invalide.");return}
+  function decryptWith(pin){return deriveKey(pin,salt).then(function(k){return decBlob(k,obj).then(function(t){applyBackupData(JSON.parse(t),pin)})})}
+  var pin=prompt("Entre le code PIN de cette sauvegarde chiffrée :");if(!pin)return;
+  decryptWith(pin).catch(function(){alert("PIN incorrect ou sauvegarde illisible.")});return
+}
+if(Array.isArray(obj)){if(confirm("Cette ancienne sauvegarde n'est pas chiffrée. Elle sera protégée après restauration. Continuer ?")){applyBackupData(obj,"")};return}
+alert("Format de sauvegarde inconnu.")}
 $("load").addEventListener("click",function(){$("file").click()});
-$("file").addEventListener("change",function(){importBackupFile(this.files[0]);this.value=""});
+$("file").addEventListener("change",function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){restoreBackupText(r.result)};r.readAsText(f);this.value=""});
 
 // ===== STOCKAGE LOCAL : lecture / écriture dans le navigateur (localStorage) =====
 function lsg(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -228,12 +249,13 @@ function lss(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function head(){shop=lsg("pc_shop")||"";$("brand").textContent=shop||APP.nom;document.title=shop||APP.nom}
 function stamp(){lss("pc_bk",String(Date.now()));warn()}
 function warn(){var t=+lsg("pc_bk")||0,w=$("warn"),fq=bkFreq();w.innerHTML="";w.style.borderLeft="";
+if(lsg("pc_enc")!=="1"){w.textContent="Protection recommandée : active un code PIN pour chiffrer tes données et sauvegardes.";w.style.borderLeft="5px solid var(--red)";var pb=mk("button",{type:"button",textContent:"Activer la protection"});pb.style.cssText="display:block;margin-top:8px";pb.addEventListener("click",function(){$("m7").classList.add("on")});w.appendChild(pb);return}
 if(!data.some(function(c){return!c.demo})){w.textContent="Tes données restent dans ce navigateur. Pense à faire une sauvegarde régulièrement.";return}
 var d=t?Math.floor((Date.now()-t)/864e5):null,late=d===null||(fq>0&&d>=fq);
 w.textContent=d===null?"Aucune sauvegarde faite. Protège tes données maintenant.":late?"Dernière sauvegarde il y a "+d+" jour(s) : il est temps d'en refaire une.":"Dernière sauvegarde il y a "+d+" jour(s). C'est bon.";
 if(late){w.style.borderLeft="5px solid var(--red)";var bt=mk("button",{type:"button",textContent:"Sauvegarder maintenant"});bt.style.cssText="display:block;margin-top:8px";bt.addEventListener("click",function(){$("save").click()});w.appendChild(bt)}}
 var TOS={"Commandée":"Réservée","Achetée en Chine":"Acompte reçu","En transit":"Acompte reçu","Arrivée à Douala":"Prête à livrer"},TOI={"Réservée":"Commandée","Prête à livrer":"Arrivée à Douala"};
-function setMode(m){mode=m==="stock"?"stock":"import";ST=mode==="stock"?STS:STI;$("g-st").textContent="Change le statut au fil de l'avancement : "+ST.join(", ")+"."}
+function setMode(m){mode=m==="stock"?"stock":"import";ST=mode==="stock"?STS:STI;$("g-st").textContent="Change le statut au fil de l'avancement : "+ST.join(", ")+".";var cv=$("conv-btn");if(cv)cv.hidden=mode!=="import"}
 function applyMode(nm){if(nm===mode)return;var mp=nm==="stock"?TOS:TOI;data.forEach(function(c){if(mp[c.statut])c.statut=mp[c.statut]});setMode(nm);lss("pc_mode",nm);store();refreshFilters();render()}
 $("w-go").addEventListener("click",function(){var v=$("w-nom").value.trim();if(!v){alert("Écris le nom de ta boutique.");return}lss("pc_shop",v);lss("pc_seen","1");head();applyMode($("w-mode").value);$("m3").classList.remove("on")});
 function loadDemo(){var t=Date.now(),s2=mode==="stock"?"Prête à livrer":"En transit";
@@ -296,12 +318,12 @@ if(remoteLicenseOn()){
 if(digits(id).length<11||cd!==mkCode(id)){$("a-err").textContent="Code incorrect. Vérifie le numéro et le code.";return}
 lss("pc_act_id",id);lss("pc_act_code",cd);checkAct();$("m8").classList.remove("on")});
 function pk(v){return"p"+h53("pin:"+v)}
-$("pin-btn").addEventListener("click",function(){$("p-new").value="";$("m7").classList.add("on")});
+$("pin-btn").addEventListener("click",function(){$("p-new").value="";$("p-confirm").value="";$("m7").classList.add("on")});
 $("p-x").addEventListener("click",function(){$("m7").classList.remove("on")});
-$("p-ok").addEventListener("click",function(){var v=$("p-new").value.trim();if(!/^\d{4,8}$/.test(v)){alert("Le code doit avoir 4 à 8 chiffres.");return}
-if(canCrypto){enableEnc(v).then(function(ok){alert(ok?"Code enregistré. Tes données sont chiffrées sur ce téléphone.":"Le chiffrement a échoué : le code n'a pas été enregistré.");$("m7").classList.remove("on")})}
-else{lss("pc_pin",pk(v));alert("Code enregistré. Le chiffrement n'est pas disponible dans ce navigateur : le code ferme seulement l'accès.");$("m7").classList.remove("on")}});
-$("p-rm").addEventListener("click",function(){if(lsg("pc_enc")==="1"){try{localStorage.setItem(KEY,JSON.stringify(pack()))}catch(e){alert("Impossible de retirer le code.");return}try{localStorage.removeItem("pc_commandes_enc")}catch(e){}lss("pc_enc","");ek=null}lss("pc_pin","");try{localStorage.removeItem("pc_snaps");localStorage.removeItem("pc_asd")}catch(e){}$("m7").classList.remove("on")});
+$("p-ok").addEventListener("click",function(){var v=$("p-new").value.trim(),c=$("p-confirm").value.trim();if(!/^\d{6,8}$/.test(v)){alert("Le code doit avoir 6 à 8 chiffres.");return}if(v!==c){alert("Les deux codes PIN ne correspondent pas.");return}
+if(!canCrypto){alert("Le chiffrement sécurisé n'est pas disponible sur cet ordinateur. Aucune protection faible ne sera activée.");return}
+enableEnc(v).then(function(ok){if(ok){lss("pc_security_version","1");alert("Protection activée : tes données et sauvegardes seront chiffrées.");$("m7").classList.remove("on")}else alert("Le chiffrement a échoué : le code n'a pas été enregistré.")})});
+$("p-rm").addEventListener("click",function(){if(!confirm("Désactiver le chiffrement expose les données locales et les sauvegardes. Continuer ?"))return;if(lsg("pc_enc")==="1"){try{localStorage.setItem(KEY,JSON.stringify(pack()))}catch(e){alert("Impossible de retirer le code.");return}try{localStorage.removeItem("pc_commandes_enc")}catch(e){}lss("pc_enc","");ek=null}lss("pc_pin","");try{localStorage.removeItem("pc_snaps");localStorage.removeItem("pc_asd")}catch(e){}$("m7").classList.remove("on")});
 var fails=0;
 function unlockUI(){$("m6").classList.remove("on");$("l-in").value="";$("l-err").textContent="";boot()}
 $("l-go").addEventListener("click",function(){var pin=$("l-in").value.trim(),err=$("l-err"),btn=this;
@@ -343,19 +365,28 @@ var det=Object.keys(by).sort().map(function(k){return[mo?k.slice(5)+"/"+k.slice(
 return{mo:mo,sum:[["Période",rangeTxt(p,r)],["Type de bilan",cap(PN[p])],["Total encaissé (FCFA)",enc],["Reste dehors (FCFA)",due],["Nombre de colis (nouvelles commandes)",n],["Colis livrés",liv],["Montant des nouvelles commandes (FCFA)",tn],["Bénéfice estimé (FCFA)",bf]].concat(Object.keys(bm).sort().map(function(k){return["Encaissé en "+k+" (FCFA)",bm[k]]})),
 detHead:[mo?"Mois":"Date","Nouvelles commandes","Montant (FCFA)","Encaissé (FCFA)"],det:det,
 ordHead:["Client ID","Client","WhatsApp","Ville","Quartier","Produits","Total (FCFA)","Versé sur la période (FCFA)","Total versé (FCFA)","Reste (FCFA)","Statut","Modes de paiement","Actions"],ord:L}}
+function paymentReportRows(r){var rows=[["Date","Client ID","Client","WhatsApp","Montant (FCFA)","Mode","Référence","Statut"]];data.forEach(function(c){if(c.demo)return;(c.pays||[]).forEach(function(x){var d=x.d||cday(c);if(!inR(d,r.f,r.t))return;rows.push([d?dfr(d):"Date non précisée",c.vague,c.nom,c.tel,num(x.m),x.mode||"Non précisé",x.ref||"",c.statut])})});return rows}
+function clientReportRows(){var rows=[["Client ID","Client","WhatsApp","Ville","Zone","Commandes","Total (FCFA)","Versé (FCFA)","Reste (FCFA)","Dernière commande"]];clientList().forEach(function(e){rows.push([e.id,e.nom,e.tel,e.ville||"",e.zone||"",e.ord.length,e.tot,e.paid,e.due,e.last>1e12?dfr(cday({id:e.last})):""])});return rows}
 function bilanBook(p,r){var d=bilanData(p,r),sh=[];
 sh.push({name:"Résumé",widths:[42,34],rows:[[{v:"Bilan OrderPro",s:"title"}],[]].concat(d.sum.map(function(x){return[{v:x[0],s:"lab"},typeof x[1]==="number"?{v:x[1],s:"nb"}:{v:x[1],s:"t"}]}))});
 if(p!=="j")sh.push({name:d.mo?"Détail par mois":"Détail par jour",widths:[16,22,20,20],head:0,rows:[d.detHead].concat(d.det)});
-sh.push({name:"Commandes",widths:[12,22,18,14,18,44,16,24,20,16,18,22,44],head:0,rows:[d.ordHead].concat(d.ord)});return sh}
+sh.push({name:"Commandes",widths:[12,22,18,14,18,44,16,24,20,16,18,22,44],head:0,rows:[d.ordHead].concat(d.ord)});
+sh.push({name:"Paiements",widths:[16,12,22,18,18,20,24,20],head:0,rows:paymentReportRows(r)});
+sh.push({name:"Clients",widths:[12,22,18,14,18,12,18,18,18,18],head:0,rows:clientReportRows()});return sh}
 var bP="j",bRef="",bEnd="",snooze=0;
-function showRange(){var c=bP==="c";$("b-d2w").hidden=!c;$("b-dlab").textContent=c?"Du":"Date de référence";$("b-range").textContent=rangeTxt(bP,range(bP,bRef,bEnd))}
+function renderBilanPreview(){var box=$("b-preview");if(!box||!bRef)return;var d=bilanData(bP,range(bP,bRef,bEnd));box.innerHTML="";
+var grid=mk("div",{className:"bilan-preview-grid"});d.sum.slice(2,8).forEach(function(x){var card=mk("div",{className:"bilan-preview-card"});card.appendChild(mk("span",{textContent:x[0]}));card.appendChild(mk("b",{textContent:typeof x[1]==="number"&&/FCFA/.test(x[0])?fmt(x[1])+" F":String(x[1])}));grid.appendChild(card)});box.appendChild(grid);
+var top=d.ord.slice().sort(function(a,c){return num(c[6])-num(a[6])}).slice(0,5);var title=mk("h3",{textContent:"Principales commandes de la période"});title.style.cssText="margin:14px 0 6px;font-size:1rem";box.appendChild(title);
+if(!top.length){box.appendChild(mk("p",{className:"meta",textContent:"Aucune commande ou aucun versement sur cette période."}));return}
+var list=mk("div",{className:"bilan-top-list"});top.forEach(function(x){var row=mk("div",{className:"bilan-top-row"});row.appendChild(mk("span",{textContent:(x[1]||"Client")+" · "+(x[0]||"—")}));row.appendChild(mk("b",{textContent:fmt(num(x[6]))+" F"}));list.appendChild(row)});box.appendChild(list)}
+function showRange(){var c=bP==="c";$("b-d2w").hidden=!c;$("b-dlab").textContent=c?"Du":"Date de référence";var r=range(bP,bRef,bEnd);$("b-range").textContent=rangeTxt(bP,r);renderBilanPreview()}
 function enabled(){var e=lsg("pc_bil_en");return e===null?"j":e}
 function setNs(){var t=$("b-ns");t.textContent=!("Notification" in window)?"Les notifications ne sont pas disponibles sur ce navigateur.":Notification.permission==="granted"?"Notifications activées.":Notification.permission==="denied"?"Notifications bloquées : autorise-les dans les réglages du navigateur.":"Notifications non activées."}
 function notify(title,body){try{if(!("Notification" in window)||Notification.permission!=="granted")return;
 if(navigator.serviceWorker&&navigator.serviceWorker.controller){navigator.serviceWorker.ready.then(function(g){g.showNotification(title,{body:body,icon:"icon-192.png",tag:"orderpro"})})}else{new Notification(title,{body:body})}}catch(e){}}
 function openBilan(p,ref,pending){bP=p||"j";bRef=ref||today();$("b-p").value=bP;$("b-d").value=bRef;bEnd=bRef;$("b-d2").value=bEnd;$("b-h").value=lsg("pc_bil_h")||"20:00";
 var en=enabled();["j","s","m","a"].forEach(function(k){$("b-e"+k).checked=en.indexOf(k)>-1});$("b-wh").value=lsg("pc_wait_h")||"24";
-$("b-txt").textContent=pending?"Ton bilan est prêt. Télécharge le fichier CSV pour ton rapport.":"Choisis la période, puis télécharge ton bilan.";
+$("b-txt").textContent=pending?"Ton bilan est prêt. Consulte le résumé puis télécharge le rapport Excel.":"Le résumé se met à jour quand tu changes la période. Télécharge ensuite le rapport Excel.";
 setNs();showRange();$("m10").classList.add("on")}
 $("bilan-btn").addEventListener("click",function(){openBilan("j",today(),false)});
 $("b-p").addEventListener("change",function(){bP=this.value;showRange()});
@@ -445,7 +476,7 @@ var COLS=["noir","blanc","rouge","bleu","vert","jaune","rose","gris","marron","b
 function cap(t){t=String(t||"").trim();return t?t.charAt(0).toUpperCase()+t.slice(1):t}
 function parseMsg(t){var o={},txt=String(t||""),n=noacc(txt),L=txt.split(/\r?\n/);
 var m=txt.match(/(?:\+?\s?237[\s.-]?)?6(?:[\s.-]?\d){8}/);if(m)o.tel=fixTel(m[0]);
-var lab={nom:/^(nom|client|cliente|prenom|noms?)$/,p:/^(produit|article|commande|modele)$/,zone:/^(quartier|zone|lieu|adresse|localisation|livraison)$/,co:/^couleur$/,s:/^(taille|pointure)$/,q:/^(quantite|qte|nombre)$/,t:/^(prix|montant|total)$/};
+var lab={nom:/^(nom|client|cliente|prenom|noms?)$/,ville:/^ville$/,p:/^(produit|article|commande|modele)$/,zone:/^(quartier|zone|lieu|adresse|localisation|livraison)$/,co:/^couleur$/,s:/^(taille|pointure)$/,q:/^(quantite|qte|nombre)$/,t:/^(prix|montant|total)$/};
 L.forEach(function(l){var k=l.match(/^\s*[-•*]?\s*([^:：\-–]{2,20})\s*[:：]\s*(.+?)\s*$/);if(!k)return;var key=noacc(k[1]).trim(),v=k[2].trim();for(var f in lab){if(lab[f].test(key)&&!o[f]){o[f]=v;break}}});
 if(o.tel&&o.nom&&digits(o.nom).length>8)delete o.nom;
 if(!o.nom){var mn=txt.match(/(?:je m'appelle|je m’appelle|mon nom est|moi c'est|moi c’est|c'est|c’est)\s+([A-ZÀ-Ý][A-Za-zÀ-ÿ'’-]*(?:\s+[A-ZÀ-Ý][A-Za-zÀ-ÿ'’-]*)?)/);if(mn)o.nom=mn[1]}
@@ -678,14 +709,18 @@ function dlBlob(name,blob){var a=document.createElement("a");a.href=URL.createOb
 /* Export de toutes les commandes : un tableau, une colonne par information. */
 function orderTable(){var rows=[["Client ID","Client","WhatsApp","Ville","Adresse","Quartier","Produits","Quantité","Total (FCFA)","Versé (FCFA)","Reste (FCFA)","Mode(s) de paiement","Référence(s)","Statut","Échéance","Date de commande","Notes","Coût d'achat (FCFA)","Bénéfice (FCFA)"]];
 data.forEach(function(c){if(c.demo)return;rows.push([c.vague,c.nom,c.tel,c.ville||"",c.adresse||"",c.zone||"",itemsS(c),c.qte,c.total,c.acompte,reste(c),payModes(c),payRefs(c),c.statut,c.echeance||"",c.id>1e12?dfr(cday(c)):"",c.note||"",c.cout||"",c.cout?c.total-c.cout:""])});return rows}
-$("xls").addEventListener("click",function(){dlBlob("commandes-orderpro.xlsx",xlsxBlob([{name:"Commandes",widths:[12,22,18,14,28,18,44,10,16,16,16,22,24,18,16,18,30,18,16],head:0,rows:orderTable()}]))});
-$("csv").addEventListener("click",function(){dl("commandes-orderpro.csv","\ufeff"+csvText(orderTable()),"text/csv")});
+function allReportRange(){return{f:"0000-01-01",t:"9999-12-31"}}
+$("xls").addEventListener("click",function(){var r=allReportRange();dlBlob("commandes-orderpro.xlsx",xlsxBlob([
+{name:"Commandes",widths:[12,22,18,14,28,18,44,10,16,16,16,22,24,18,16,18,30,18,16],head:0,rows:orderTable()},
+{name:"Paiements",widths:[16,12,22,18,18,20,24,20],head:0,rows:paymentReportRows(r)},
+{name:"Clients",widths:[12,22,18,14,18,12,18,18,18,18],head:0,rows:clientReportRows()}
+]))});
 /* Export du bilan : Excel (plusieurs feuilles) ou CSV (un seul tableau propre). */
 function bilanFile(r){return"bilan-"+PF[bP]+"-"+(bP==="j"?r.f:r.f+"_au_"+r.t)}
 function exportBilan(kind){var r=range(bP,bRef,bEnd);
 if(kind==="xlsx"){dlBlob(bilanFile(r)+".xlsx",xlsxBlob(bilanBook(bP,r)))}else{var d=bilanData(bP,r);dl(bilanFile(r)+".csv","\ufeff"+csvText([d.ordHead].concat(d.ord)),"text/csv")}
 if(bP!=="c")markDone(bP,r.t);$("m10").classList.remove("on")}
-$("b-dl").addEventListener("click",function(){exportBilan("xlsx")});$("b-dc").addEventListener("click",function(){exportBilan("csv")});
+$("b-dl").addEventListener("click",function(){exportBilan("xlsx")});
 /*ENDXLSX*/
 
 // ===== NOUVEAUTÉS : paiements, anglais, corbeille, stock, devis, fiches clients, accueil, mode discret, sauvegarde auto =====
@@ -700,6 +735,38 @@ function unpack(a){data=[];trash=[];devis=[];stk=[];(a||[]).forEach(function(c){
 function cntOrders(rows){return rows.filter(function(c){return c&&!c.del&&!c.dv&&!c.sk}).length}
 function openM(id){$(id).classList.add("on")}
 document.querySelectorAll("[data-x]").forEach(function(b){b.addEventListener("click",function(){$(b.getAttribute("data-x")).classList.remove("on")})});
+// --- Conversion de devises pour les importations ---
+var FX_RATES={EUR:0.001524,CNY:0.011545,NGN:2.347797,USD:0.001715,XOF:1},FX_UPDATED="04/10/2026";
+function fxFormat(x,c){return new Intl.NumberFormat("fr-FR",{maximumFractionDigits:c||2}).format(x)}
+function fxUpdate(){var amount=num($("cv-amt").value),to=$("cv-to").value,rate=FX_RATES[to]||0;
+  lss("pc_fx_amt",String($("cv-amt").value||""));lss("pc_fx_to",to);
+  $("cv-res").textContent=amount>0?fxFormat(amount,0)+" XAF ≈ "+fxFormat(amount*rate,to==="NGN"?0:2)+" "+to:"Entre un montant pour afficher le résultat.";
+  $("cv-rate-note").textContent="Taux indicatif : 1 XAF = "+String(rate).replace(".",",")+" "+to+" · référence du "+FX_UPDATED+".";
+  $("cv-status").textContent=FX_UPDATED==="aujourd'hui"?"Taux actualisés avec Internet.":"Mode hors ligne : taux de référence conservés. Actualise si tu as Internet.";
+}
+function fxOpen(){if(lsg("pc_fx_amt")&&$("cv-amt"))$("cv-amt").value=lsg("pc_fx_amt");if(lsg("pc_fx_to")&&$("cv-to"))$("cv-to").value=lsg("pc_fx_to");fxUpdate();openM("m20")}
+if($("conv-btn"))$("conv-btn").addEventListener("click",fxOpen);
+if($("cv-amt"))$("cv-amt").addEventListener("input",fxUpdate);
+if($("cv-to"))$("cv-to").addEventListener("change",fxUpdate);
+if($("cv-copy"))$("cv-copy").addEventListener("click",function(){var text=$("cv-res").textContent;if(!text||/Entre un montant/.test(text))return;if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(function(){alert("Résultat copié.")},function(){alert("Copie impossible ici.")});else alert("Sélectionne le résultat pour le copier.")});
+if($("cv-x"))$("cv-x").addEventListener("click",function(){$("m20").classList.remove("on")});
+if($("cv-refresh"))$("cv-refresh").addEventListener("click",function(){
+  var b=this;b.disabled=true;b.textContent="Mise à jour…";
+  fetch("https://open.er-api.com/v6/latest/XAF").then(function(r){return r.json()}).then(function(x){if(x&&x.rates){["EUR","CNY","NGN","USD","XOF"].forEach(function(k){if(isFinite(+x.rates[k]))FX_RATES[k]=+x.rates[k]});FX_UPDATED="aujourd'hui";fxUpdate()}}).catch(function(){alert("Taux hors ligne conservés : "+FX_UPDATED)}).then(function(){b.disabled=false;b.textContent="Actualiser les taux"});
+});
+
+// --- Profil local, langue, thème et feedback ---
+var UI_LABELS={fr:{home:"Tableau de bord",orders:"Commandes",clients:"Clients",debts:"Qui me doit de l'argent",delivery:"Livraisons",stock:"Stock",reports:"Rapports",backup:"Sauvegardes",settings:"Paramètres"},en:{home:"Dashboard",orders:"Orders",clients:"Clients",debts:"Who owes me",delivery:"Deliveries",stock:"Stock",reports:"Reports",backup:"Backups",settings:"Settings"}};
+var UI_ACTIONS={fr:{"m-imp":"Importation","conv-btn":"Conversion","m-stk":"Stock local","add":"+ Nouvelle commande","liv-btn":"Livraisons","cl-btn":"Fiches clients","sk-btn":"Stock","dettes":"Qui me doit de l'argent","bilan-btn":"Rapports","ab-btn":"Sauvegarde auto","tr-btn":"Corbeille","feedback-btn":"Feedback","guide":"Mode d'emploi","rename":"Nom de ma boutique","pin-btn":"Code PIN","act-btn":"Activer l'application","save":"Sauvegarder","load":"Restaurer","b-dl":"Télécharger le rapport Excel","cv-copy":"Copier le résultat"},en:{"m-imp":"Import","conv-btn":"Currency conversion","m-stk":"Local stock","add":"+ New order","liv-btn":"Deliveries","cl-btn":"Client files","sk-btn":"Stock","dettes":"Who owes me","bilan-btn":"Reports","ab-btn":"Auto backup","tr-btn":"Recycle bin","feedback-btn":"Feedback","guide":"User guide","rename":"Shop name","pin-btn":"PIN code","act-btn":"Activate app","save":"Save","load":"Restore","b-dl":"Download Excel report","cv-copy":"Copy result"}};
+function applyUiLanguage(lang){lang=lang==="en"?"en":"fr";lss("pc_ui_lang",lang);var d=UI_LABELS[lang];document.querySelectorAll(".pc-nav button").forEach(function(b){var k=b.dataset.page,sp=b.querySelector("span:last-child");if(sp&&d[k])sp.textContent=d[k]});var a=UI_ACTIONS[lang];Object.keys(a).forEach(function(k){var e=$(k);if(e)e.textContent=a[k]});if($("lang-btn"))$("lang-btn").textContent=lang.toUpperCase();if($("ui-lang"))$("ui-lang").value=lang;if($("auth-login"))$("auth-login").textContent=lang==="en"?"Sign in":"Se connecter";if($("auth-logout"))$("auth-logout").textContent=lang==="en"?"Log out":"Se déconnecter"}
+function renderAuth(){var n=lsg("pc_profile_name")||"",e=lsg("pc_profile_email")||"";if($("auth-name"))$("auth-name").value=n;if($("auth-email"))$("auth-email").value=e;if($("auth-status"))$("auth-status").textContent=n?("Profil local actif : "+n+(e?" · "+e:"")):"Aucun profil local connecté. Les données restent dans cette installation.";if($("auth-login"))$("auth-login").hidden=!!n;if($("auth-logout"))$("auth-logout").hidden=!n;if($("auth-btn"))$("auth-btn").textContent=n?("👤 "+n):"Se connecter"}
+if($("auth-btn"))$("auth-btn").addEventListener("click",function(){renderAuth();openM("m21")});
+if($("auth-login"))$("auth-login").addEventListener("click",function(){var n=$("auth-name").value.trim(),e=$("auth-email").value.trim();if(!n){alert("Indique un nom ou le nom de ta boutique.");return}lss("pc_profile_name",n);lss("pc_profile_email",e);renderAuth();$("m21").classList.remove("on")});
+if($("auth-logout"))$("auth-logout").addEventListener("click",function(){localStorage.removeItem("pc_profile_name");localStorage.removeItem("pc_profile_email");renderAuth()});
+if($("auth-x"))$("auth-x").addEventListener("click",function(){$("m21").classList.remove("on")});
+if($("ui-lang"))$("ui-lang").addEventListener("change",function(){applyUiLanguage(this.value)});
+if($("feedback-btn"))$("feedback-btn").addEventListener("click",function(){location.href="mailto:"+APP.contact+"?subject="+encodeURIComponent("Feedback OrderPro PC")+"&body="+encodeURIComponent("Version : "+APP.version+"\\nMessage : ")});
+applyUiLanguage(lsg("pc_ui_lang")||"fr");renderAuth();
 
 // --- Messages en anglais ---
 function msgEn(c){var n=c.nom.split(" ")[0],b="Hello "+n+", ",R=names(c),st=mode==="stock",bal=reste(c)?" Balance to pay: "+fmt(reste(c))+" FCFA.":"";
@@ -872,40 +939,16 @@ $("ab-c").addEventListener("change",function(){lss("pc_abc",this.checked?"1":"0"
 $("ab-now").addEventListener("click",function(){$("save").click()});
 
 
-// ===== CAPACITÉS PWA MOBILES =====
-function runMobileIntent(){
-  var u=new URL(location.href),p=u.searchParams,action=p.get("action"),protocol=p.get("protocol");
-  var title=p.get("title")||"",text=p.get("text")||"",sharedUrl=p.get("url")||"";
-  if(protocol){text=protocol;action="share"}
-  var payload=[title,text,sharedUrl].filter(function(x){return String(x||"").trim()}).join("\n");
-  if(!action&&!payload)return;
-  history.replaceState({},"",location.pathname);
-  function later(fn){setTimeout(function(){if($("m3")&&$("m3").classList.contains("on"))$("m3").classList.remove("on");fn()},500)}
-  if(action==="new-order")return later(function(){$("add").click()});
-  if(action==="orders")return later(function(){$("list").scrollIntoView({behavior:"smooth",block:"start"})});
-  if(action==="clients")return later(function(){$("cl-btn").click()});
-  if(action==="backup")return later(function(){$("ab-btn").click()});
-  if(payload)return later(function(){$("add").click();$("f-paste").value=payload;$("f-parse").click()});
-}
-function setupMobileLaunchFiles(){
-  if(!window.launchQueue||!window.LaunchParams)return;
-  launchQueue.setConsumer(function(params){
-    var f=params.files&&params.files[0];
-    if(f&&f.getFile)f.getFile().then(importBackupFile).catch(function(){});
-  });
-}
-
 // ===== DÉMARRAGE : chargement des données, verrouillage et affichage =====
 function boot(){data.forEach(function(c){if(!c.demo&&c.vague==="Vague exemple"&&/^\+237 6700000/.test(c.tel||"")){c.demo=true;c.vague=DEMO}});data.forEach(norm);purgeTrash();applyPriv();refreshFilters();render();warn();bilanCheck()}
 head();setMode(lsg("pc_mode")||"import");checkAct();
 if(lsg("pc_enc")==="1"){$("m6").classList.add("on")}else{load();boot();if(lsg("pc_pin"))$("m6").classList.add("on")}
 if(!lsg("pc_seen"))$("m3").classList.add("on");
-setupMobileLaunchFiles();runMobileIntent();
 setInterval(bilanCheck,60000);
 })();
 
 // ===== INSTALLATION (PWA) : service worker, bouton d'installation, aide iPhone =====
-if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").catch(function(){})})}
+if("serviceWorker" in navigator){if(window.desktop){navigator.serviceWorker.getRegistrations().then(function(rs){if(!rs.length)return;return Promise.all(rs.map(function(r){return r.unregister()})).then(function(){location.reload()})}).catch(function(){})}else{window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").catch(function(){})})}}
 (function(){var dp=null,bt=document.getElementById("inst"),hint=document.getElementById("ios-hint");
 var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),standalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;if(bt)bt.hidden=false});

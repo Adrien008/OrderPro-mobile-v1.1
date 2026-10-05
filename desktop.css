@@ -1,0 +1,65 @@
+/* OrderPro – améliorations de la version bureau (s'ajoute à style.css, ne remplace rien) */
+html{scrollbar-width:thin}
+::selection{background:var(--acc);color:var(--accink)}
+button,a.btn,a.btnalt{transition:filter .12s ease,transform .08s ease}
+@media (hover:hover){button:hover,a.btn:hover,a.btnalt:hover{filter:brightness(1.08)}}
+button:active,a.btn:active,a.btnalt:active{transform:scale(.98)}
+
+/* Grand écran : plus de place, cartes en colonnes */
+@media (min-width:900px){
+ main{max-width:1180px;padding:20px 24px 40px}
+ #list{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px;align-items:start}
+ #list>.card,#list>.empty,#list>div{margin-bottom:0}
+ #list>.empty{grid-column:1 / -1}
+ .stats{grid-template-columns:repeat(4,1fr)}
+ .modal .box{margin:auto;max-width:640px}
+ #m1 .box{max-width:760px}
+ #m13 .box{max-width:560px}
+}
+@media (min-width:1500px){#list{grid-template-columns:repeat(3,1fr)}}
+
+/* Barre d'information (fichier enregistré, sauvegarde) */
+#pc-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);max-width:min(720px,calc(100% - 24px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;z-index:10;font-family:system-ui,sans-serif;font-size:.9rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+#pc-bar[hidden]{display:none}
+#pc-bar button{padding:6px 12px;font-size:.85rem;min-height:0;background:var(--acc);color:var(--accink);box-shadow:none}
+#pc-bar button.alt{background:transparent;color:inherit;border:1px solid currentColor}
+
+/* Impression du reçu (Ctrl+P ou bouton « Imprimer ») */
+@media print{
+ body.print-recu main,body.print-recu #toast,body.print-recu #pc-bar,body.print-recu .modal:not(#m13){display:none!important}
+ body.print-recu #m13{position:static!important;display:block!important;background:none!important;padding:0!important}
+ body.print-recu #m13 .box{box-shadow:none!important;max-width:none!important;padding:0!important;background:none!important}
+ body.print-recu #m13 .btns,body.print-recu #m13 h2{display:none!important}
+ body.print-recu #ri-img{display:block;width:100%;max-width:560px;margin:0 auto;border:0!important;border-radius:0!important}
+}
+
+/* Tableau professionnel des commandes sur Windows */
+.pc-table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);box-shadow:0 2px 10px rgba(16,48,43,.08)}
+.pc-order-table{width:100%;min-width:1240px;border-collapse:separate;border-spacing:0;font-family:system-ui,sans-serif;font-size:.86rem}
+.pc-order-table th{position:sticky;top:0;z-index:1;background:var(--acc);color:var(--accink);font-weight:700;text-align:left;white-space:nowrap;padding:11px 10px;border-bottom:1px solid var(--line)}
+.pc-order-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.pc-order-table tbody tr:nth-child(even){background:color-mix(in srgb,var(--bg) 52%,var(--card))}
+.pc-order-table tbody tr:hover{background:color-mix(in srgb,var(--acc) 9%,var(--card))}
+.pc-order-table tbody tr:last-child td{border-bottom:0}
+.pc-order-table .pc-id{font-weight:700;white-space:nowrap;color:var(--acc)}
+.pc-who{min-width:150px}.pc-who strong,.pc-who span,.pc-location strong,.pc-location span{display:block}.pc-who span,.pc-location span{color:var(--mute);font-size:.78rem;margin-top:2px;white-space:nowrap}
+.pc-products{min-width:230px;max-width:310px;line-height:1.35}.pc-money{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}.pc-due{color:var(--red);font-weight:700}.pc-paid{color:var(--acc);font-weight:700}
+.pc-status{min-width:145px;padding:7px 8px;font-size:.82rem}.pc-location{min-width:130px}.pc-date{white-space:nowrap;color:var(--mute)}
+.pc-actions{min-width:285px}.pc-actions{display:flex;gap:5px;flex-wrap:wrap}.pc-actions button{padding:7px 9px;font-size:.78rem;min-height:0}
+.pc-order-table tr.is-cancelled{opacity:.68}
+@media (min-width:900px){
+  #list{display:block}
+  #list>.pc-table-wrap{margin-bottom:0}
+}
+@media (max-width:899px){
+  .pc-table-wrap{margin-left:-2px;width:calc(100% + 4px)}
+  .pc-order-table{min-width:1120px}
+}
+@supports not (background:color-mix(in srgb,red 10%,white)){
+  .pc-order-table tbody tr:nth-child(even){background:var(--bg)}
+  .pc-order-table tbody tr:hover{background:var(--bg)}
+}
+.pc-client-contact{margin:6px 0 10px;padding:8px 10px;border-left:3px solid var(--acc);background:color-mix(in srgb,var(--acc) 7%,var(--card));font: .84rem/1.45 system-ui,sans-serif;color:var(--mute)}
+@supports not (background:color-mix(in srgb,red 10%,white)){.pc-client-contact{background:var(--bg)}}
+.pc-overdue{color:var(--red);font-weight:700;background:color-mix(in srgb,var(--red) 9%,var(--card))}
+@supports not (background:color-mix(in srgb,red 10%,white)){.pc-overdue{background:var(--hi)}}

@@ -4,7 +4,7 @@
  * Contact officiel : voir APP.contact ci-dessous.
  */
 (function(){
-var APP={nom:"OrderPro",contact:"nlompaaadrien@gmail.com",version:"1.8.3",essai:5,secret:"ac1b66d889b9"};
+var APP={nom:"OrderPro",contact:"nlompaaadrien@gmail.com",version:"1.8.13",essai:5,secret:"ac1b66d889b9"};
 var STI=["Commandée","Acompte reçu","Achetée en Chine","En transit","Arrivée à Douala","Livrée","Annulée"],STS=["Réservée","Acompte reçu","Prête à livrer","Livrée","Annulée"],ST=STI,mode="import";
 var active=false,view="real",DEMO="Vague d'exemple",KEY="pc_commandes",data=[],trash=[],devis=[],stk=[],fromDv=0,editId=null,mem=null,shop="";
 function load(){try{var v=localStorage.getItem(KEY);if(v)unpack(JSON.parse(v)||[])}catch(e){data=[]}}
@@ -73,12 +73,12 @@ rows.forEach(function(c){
 var tr=document.createElement("tr");tr.className=c.statut==="Annulée"?"is-cancelled":"";
 function cell(text,cls){var td=document.createElement("td");if(cls)td.className=cls;td.textContent=text==null||text===""?"—":text;return td}
 tr.appendChild(cell(c.vague||"—","pc-id"));
-var who=document.createElement("td");who.className="pc-who";var nm=document.createElement("strong");nm.textContent=c.nom||"Client sans nom";who.appendChild(nm);var tel=document.createElement("span");tel.textContent=fmtT(c.tel);who.appendChild(tel);tr.appendChild(who);
+var who=document.createElement("td");who.className="pc-who";var bd=badge(c),dot=document.createElement("span");dot.className="pc-urgency-dot pc-urgency-"+bd.k;dot.title=bd.txt;dot.setAttribute("aria-label",bd.txt);dot.style.background=bd.color;var wh=document.createElement("div");wh.className="pc-who-head";wh.appendChild(dot);var nm=document.createElement("strong");nm.textContent=c.nom||"Client sans nom";wh.appendChild(nm);who.appendChild(wh);var tel=document.createElement("span");tel.textContent=fmtT(c.tel);who.appendChild(tel);tr.appendChild(who);
 tr.appendChild(cell(itemsS(c),"pc-products"));
 tr.appendChild(cell(fmt(c.total)+" F","pc-money"));
 tr.appendChild(cell(fmt(c.acompte)+" F","pc-money"));
 tr.appendChild(cell(fmt(reste(c))+" F",reste(c)>0?"pc-money pc-due":"pc-money pc-paid"));
-var st=document.createElement("td");var select=document.createElement("select");select.className="pc-status";select.setAttribute("aria-label","Statut de "+(c.nom||"la commande"));opt(select,ST);select.value=c.statut;select.addEventListener("change",function(){var oldMap=stockMap(c);c.statut=select.value;c.su=today();stockApply(oldMap,stockMap(c));store();render()});st.appendChild(select);tr.appendChild(st);
+var st=document.createElement("td");st.className="pc-status-cell";var select=document.createElement("select");select.className="pc-status";select.setAttribute("aria-label","Statut de "+(c.nom||"la commande"));opt(select,ST);select.value=c.statut;select.addEventListener("change",function(){var oldMap=stockMap(c);c.statut=select.value;c.su=today();stockApply(oldMap,stockMap(c));store();render()});st.appendChild(select);tr.appendChild(st);
 var dueDate=c.echeance?dfr(c.echeance):"—",dueCls=c.echeance&&c.echeance<today()&&reste(c)>0?"pc-date pc-overdue":"pc-date";tr.appendChild(cell(dueDate,dueCls));
 var loc=document.createElement("td");loc.className="pc-location";var city=document.createElement("strong");city.textContent=c.ville||"Ville non précisée";loc.appendChild(city);if(c.zone){var zone=document.createElement("span");zone.textContent=c.zone;loc.appendChild(zone)}if(c.adresse){var adr=document.createElement("span");adr.textContent=c.adresse;loc.appendChild(adr)}tr.appendChild(loc);
 tr.appendChild(cell(cday(c)?dfr(cday(c)):"—","pc-date"));
@@ -500,7 +500,9 @@ if(o.p){var it={p:cap(o.p),q:o.q||1,t:o.t||0,s:o.s||"",co:o.co||""};it.g=guessG(
 var mm=prodMem()[it.p.toLowerCase()];if(mm&&!it.t&&mm.u)it.t=Math.round(mm.u*it.q);if(mm&&mm.g){it.g=mm.g;it.gm=true}
 var empty=fItems.length===1&&!String(fItems[0].p).trim()&&!num(fItems[0].t);if(empty)fItems[0]=it;else fItems.push(it);drawItems();calcReste();
 got.push("produit");if(it.s)got.push("taille ou pointure");if(it.co)got.push("couleur");if(o.t)got.push("prix")}
-$("f-pres").textContent=got.length?"Rempli : "+got.join(", ")+". Vérifie chaque champ avant d'enregistrer.":"Rien trouvé. Vérifie que le message contient un numéro, un produit ou un quartier."}
+var pcHint=window.desktop?" Tu peux aussi coller : nom, numéro, ville, quartier, produit, couleur, quantité, taille ou prix.":"";
+var pcEmpty=window.desktop?"Rien trouvé. Tu peux coller : nom, numéro, ville, quartier, produit, couleur, quantité, taille ou prix.":"Rien trouvé. Vérifie que le message contient un numéro, un produit ou un quartier.";
+$("f-pres").textContent=got.length?"Rempli : "+got.join(", ")+"."+pcHint+" Vérifie chaque champ avant d'enregistrer.":pcEmpty}
 $("f-parse").addEventListener("click",function(){applyParse(parseMsg($("f-paste").value))});
 function prodMem(){var m={};data.filter(function(c){return!c.demo}).sort(function(a,b){return a.id-b.id}).forEach(function(c){c.items.forEach(function(i){var k=String(i.p).trim().toLowerCase();if(!k)return;var e=m[k]||(m[k]={p:i.p,u:0,g:i.g,n:0});e.n++;e.p=i.p;if(num(i.t)>0)e.u=num(i.t)/(num(i.q)||1);if(i.g)e.g=i.g})});return m}
 function fillPlist0(){var m=prodMem(),a=Object.keys(m).map(function(k){return m[k]}).sort(function(x,y){return y.n-x.n}).slice(0,60),d=$("plist");d.innerHTML="";a.forEach(function(e){var o=document.createElement("option");o.value=e.p;if(e.u)o.label=e.p+" · "+fmt(e.u)+" FCFA";d.appendChild(o)})}

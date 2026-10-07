@@ -1,7 +1,8 @@
 /* OrderPro — interface mobile additive. Aucun effet dans l'application Windows. */
 @media (max-width:899px){
-  body.mobile-ready{padding-bottom:82px}
-  body.mobile-ready main{padding:12px 12px 92px}
+  body.mobile-ready{width:100%;min-width:0;overflow-x:hidden;padding-bottom:82px}
+  body.mobile-ready main{width:100%;max-width:none;margin:0;padding:12px 12px 92px}
+  body.mobile-ready main>div:first-child{width:100%;display:flex;flex-wrap:wrap;gap:8px!important}
   body.mobile-ready main>section{border-radius:14px;padding:12px}
   body.mobile-ready h1{font-size:1.35rem}
   body.mobile-ready .stats{gap:6px}

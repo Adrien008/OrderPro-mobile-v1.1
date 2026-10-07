@@ -2,6 +2,8 @@
    Couche additive : les fonctions métier restent dans app.js. */
 (function(){
   "use strict";
+  // La navigation PC ne doit jamais s'exécuter dans la PWA ou l'APK mobile.
+  if(!window.desktop) return;
   if(window.__ORDERPRO_DESKTOP_UI__) return;
   window.__ORDERPRO_DESKTOP_UI__=true;
 
@@ -129,6 +131,10 @@
     }
     syncModalLayer();
     if(window.MutationObserver)new MutationObserver(syncModalLayer).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]});
+
+    // Recadrage explicite selon l'état de la fenêtre Windows.
+    function setWindowState(info){document.body.classList.toggle("pc-window-maximized",!!(info&&info.maximized))}
+    if(window.desktop&&window.desktop.onWindowState)window.desktop.onWindowState(setWindowState);
 
     // Haut de page : profil local, thème, langue et feedback.
     var theme=byId("theme-btn"),lang=byId("lang-btn"),auth=byId("auth-btn");

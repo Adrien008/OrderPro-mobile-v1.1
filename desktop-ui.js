@@ -138,7 +138,7 @@
 
     // Haut de page : profil local, thème, langue et feedback.
     var theme=byId("theme-btn"),lang=byId("lang-btn"),auth=byId("auth-btn");
-    if(theme)theme.addEventListener("click",function(){if(byId("priv")){} var dark=document.documentElement.getAttribute("data-theme")==="dark";document.documentElement.setAttribute("data-theme",dark?"light":"dark");localStorage.setItem("pc_theme",dark?"light":"dark");theme.textContent=dark?"☾ Mode sombre":"☀ Mode clair"});
+    if(theme)theme.addEventListener("click",function(){if(byId("priv")){} var dark=document.documentElement.getAttribute("data-theme")==="dark";document.documentElement.setAttribute("data-theme",dark?"light":"dark");localStorage.setItem("pc_theme",dark?"light":"dark");theme.textContent=document.documentElement.lang==="en"?(dark?"☾ Dark mode":"☀ Light mode"):(dark?"☾ Mode sombre":"☀ Mode clair")});
     var savedTheme=localStorage.getItem("pc_theme");if(savedTheme)document.documentElement.setAttribute("data-theme",savedTheme);if(theme&&savedTheme==="dark")theme.textContent="☀ Mode clair";
     if(lang)lang.addEventListener("click",function(){var e=byId("m21");if(e)e.classList.add("on");var l=byId("ui-lang");if(l)l.value=localStorage.getItem("pc_ui_lang")||"fr"});
     if(auth)auth.addEventListener("click",function(){var e=byId("m21");if(e)e.classList.add("on")});
